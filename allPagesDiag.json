@@ -1,0 +1,127 @@
+{
+  "patient": {
+    "name": "Smt. Fatima Parveen",
+    "age": 63,
+    "gender": "Female",
+    "id": "26A17/0375",
+    "address": "7/3a Mia Jan Ostagar Lane, 700017, Kolkata",
+    "referred_by": "Dr. Rahul Bhattacharyya",
+    "doctor_qualification": "MBBS, DNB, MRCP"
+  },
+  "reports": {
+    "liver_elastography": {
+      "lab": {
+        "name": "SONOSCAN Diagnostic & Multispeciality Outdoor",
+        "location": "Kolkata",
+        "registration_number": "KOL/26A17/0644",
+        "department": "ULT-7"
+      },
+      "dates": {
+        "test_date": "20/01/2026",
+        "report_date": "20/01/2026"
+      },
+      "findings": {
+        "liver": {
+          "size_mm": 174,
+          "description": "Moderately enlarged with slightly coarsened echotexture"
+        },
+        "hepatomegaly": "Moderate"
+      },
+      "classification": {
+        "fibrosis": {
+          "metavir_score": "F4",
+          "stage": "Cirrhosis"
+        },
+        "steatosis": {
+          "grade": "S2",
+          "level": "Moderate"
+        }
+      }
+    },
+    "body_composition": {
+      "measurements": {
+        "height_cm": 154,
+        "weight_kg": 70,
+        "bmi": 29.5,
+        "waist_cm": 113,
+        "hip_cm": 116,
+        "waist_hip_ratio": 0.97
+      },
+      "body_metrics": {
+        "body_fat_percent": 43.9,
+        "visceral_fat_level": 14,
+        "muscle_percent": 20.4
+      }
+    },
+    "renal_function": {
+      "albumin_creatinine_ratio": {
+        "value": 32.58,
+        "category": "Moderately increased"
+      }
+    },
+    "cardiac": {
+      "biomarker": {
+        "nt_probnp_pg_ml": 15,
+        "interpretation": "Normal"
+      },
+      "echocardiography": {
+        "measurements": {
+          "lvef_percent": 66,
+          "ivsd_mm": 13,
+          "pwd_mm": 12
+        },
+        "structure": {
+          "lvh": "Concentric LVH",
+          "lv_systolic_function": "Normal",
+          "lv_diastolic_function": "Grade I dysfunction",
+          "rv_function": "Normal",
+          "atria": "Normal"
+        },
+        "valves": {
+          "aortic": {
+            "condition": "Sclerosed",
+            "regurgitation": "Mild"
+          },
+          "mitral": "Normal",
+          "tricuspid": "Normal",
+          "pulmonary": "Normal"
+        },
+        "other": {
+          "rwma": "Absent",
+          "pericardium": "Normal",
+          "aorta": "Normal"
+        }
+      }
+    }
+  },
+  "clinical_summary": {
+    "major_diagnoses": [
+      "Liver cirrhosis (F4)",
+      "Moderate fatty liver",
+      "Obesity (high body fat %)",
+      "Early kidney involvement (microalbuminuria)",
+      "Left ventricular hypertrophy (LVH)",
+      "Grade I diastolic dysfunction",
+      "Mild aortic valve disease"
+    ],
+    "important_positives": [
+      "Normal heart pumping function (EF 66%)",
+      "Normal NT-proBNP (no heart failure)",
+      "No wall motion abnormality"
+    ],
+    "risk_profile": [
+      "High cardiometabolic risk",
+      "Visceral obesity",
+      "Possible insulin resistance",
+      "Early renal stress",
+      "Cardiac structural adaptation (LVH)"
+    ]
+  },
+  "clinical_priority": [
+    "Liver disease management (cirrhosis)",
+    "Weight and metabolic control",
+    "Cardiovascular risk reduction",
+    "Kidney monitoring (repeat ACR)",
+    "Blood pressure control (likely driver of LVH)"
+  ]
+}
