@@ -24,7 +24,7 @@ def risk_color(value, good_range=None, warning_range=None):
         return "red"
 
 # ---------- HEADER ----------
-st.title("🩺 Patient Health Dashboard")
+st.title("🩺 Ammas Health Dashboard")
 
 st.subheader("👤 Patient Details")
 col1, col2, col3 = st.columns(3)
