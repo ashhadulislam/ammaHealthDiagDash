@@ -13,7 +13,7 @@ def get_client():
         os.environ["SUPABASE_KEY"]
     )
 supabase = get_client()
-st.title("📊 Patient Test Progression")
+st.title("📊 Medista - Patient Test Progression")
 # -----------------------------
 # 👤 LOAD ALL PATIENTS
 # -----------------------------
@@ -72,7 +72,11 @@ if df.empty:
 # -----------------------------
 # 🧪 SELECT TESTS
 # -----------------------------
-test_options = sorted(df["test_name"].unique())
+if st.button("🧹 Normalize Test Names"):
+    supabase.rpc("normalize_all_tests").execute()
+    st.success("Normalization complete!")
+    
+test_options = sorted(df["canonical_name"].unique())
 selected_tests = st.multiselect(
     "Select tests",
     test_options
@@ -117,3 +121,38 @@ if selected_tests:
             lambda x: f"[Open Report]({x})" if x else ""
         )
         st.dataframe(display_df)
+
+
+# st.markdown("---")
+# st.markdown("<h3 style='text-align: center;'>Meet the team</h3>", unsafe_allow_html=True)
+
+# col1, col2, col3 = st.columns(3)
+
+
+# with col1:
+#     st.image("images/fatima.png", width=120)    
+#     st.markdown("""
+#     **Fatima Zaman**  
+#     Final-year Software Engineering student at the University of Management and Technology, Lahore. 
+#     Focused on applied AI, including deep learning, NLP, and agentic systems, with experience in 
+#     Android and web application development.
+#     """)
+
+# with col2:
+#     st.image("images/muntaha.png", width=120)    
+#     st.markdown("""
+#     **Muntaha Sheikh**  
+#     Public Policy & Governance graduate working at the intersection of AI governance and ethical AI. 
+#     Currently transitioning into the tech domain with a focus on AI development, supported by hands-on 
+#     learning, hackathons, and practical exposure to real-world innovation challenges.
+#     """)
+
+
+# with col3:
+#     st.image("images/ashhad.png", width=120)    
+#     st.markdown("""
+#     **Ashhadul Islam**  
+#     Postdoctoral Researcher at KTH Royal Institute of Technology, Sweden. His research spans machine 
+#     learning, deep learning, and AI-driven healthcare systems, including physiological modeling and 
+#     digital twins, with prior experience in building scalable industry-grade ML solutions.
+#     """)
