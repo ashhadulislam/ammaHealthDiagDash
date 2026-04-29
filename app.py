@@ -6,7 +6,7 @@ import altair as alt
 # -----------------------------
 # INIT SUPABASE
 # -----------------------------
-@st.cache_resource
+#@st.cache_resource
 def get_client():
     return create_client(
         os.environ["SUPABASE_URL"],
@@ -17,7 +17,7 @@ st.title("📊 Medista - Patient Test Progression")
 # -----------------------------
 # 👤 LOAD ALL PATIENTS
 # -----------------------------
-@st.cache_data
+# @st.cache_data
 def get_all_patients():
     res = supabase.table("patients") \
         .select("patient_id, name") \
@@ -38,7 +38,7 @@ selected_patient_id = patient_map[selected_patient_name]
 # -----------------------------
 # 📥 FETCH DATA
 # -----------------------------
-@st.cache_data
+# @st.cache_data
 def fetch_data(patient_id):
     reports = supabase.table("reports") \
         .select("*") \
@@ -75,17 +75,21 @@ if df.empty:
 if st.button("🧹 Normalize Test Names"):
     supabase.rpc("normalize_all_tests").execute()
     st.success("Normalization complete!")
-    
+
 test_options = sorted(df["canonical_name"].unique())
 selected_tests = st.multiselect(
     "Select tests",
     test_options
 )
+
+
 # -----------------------------
 # 📊 PROCESS DATA
 # -----------------------------
 if selected_tests:
-    df = df[df["test_name"].isin(selected_tests)]
+    df = df[df["canonical_name"].isin(selected_tests)]
+    print(df.shape)
+    
     # Clean numeric values
     df["value"] = pd.to_numeric(
         df["value_numeric"].fillna(
@@ -93,13 +97,15 @@ if selected_tests:
         ),
         errors="coerce"
     )
+    
     df["report_date"] = pd.to_datetime(df["report_date"])
+    print(df[["canonical_name","value","value_numeric","value_text","report_date"]])
     st.subheader("📈 Test Trends Over Time")
     # -----------------------------
     # 📈 CHARTS (ONE PER TEST)
     # -----------------------------
     for test in selected_tests:
-        test_df = df[df["test_name"] == test].copy()
+        test_df = df[df["canonical_name"] == test].copy()
         test_df = test_df.sort_values("report_date")
         st.write(f"### {test}")
         chart = alt.Chart(test_df).mark_line(point=True).encode(
@@ -114,6 +120,9 @@ if selected_tests:
         # -----------------------------
         # 📄 TABLE
         # -----------------------------
+
+
+        
         display_df = test_df[
             ["report_date", "value", "unit", "source_file"]
         ].copy()
