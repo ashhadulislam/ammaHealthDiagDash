@@ -1,0 +1,15 @@
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear in external disks
+.Spotlight-V100
+.Trashes
+
+# Editor temp files
+*.swp
+*.swo
