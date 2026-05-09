@@ -66,6 +66,8 @@ def fetch_data(patient_id):
     return df
 
 df = fetch_data(selected_patient_id)
+print(df)
+print(df.columns)
 if df.empty:
     st.warning("No data found")
     st.stop()
@@ -109,7 +111,13 @@ if selected_tests:
         test_df = test_df.sort_values("report_date")
         st.write(f"### {test}")
         chart = alt.Chart(test_df).mark_line(point=True).encode(
-            x=alt.X("report_date:T", title="Date"),
+#            x=alt.X("report_date:T", title="Date"),
+
+            x=alt.X(
+                "report_date:T",
+                title="Date",
+                scale=alt.Scale(padding=30)
+            ),            
             y=alt.Y("value:Q", title=f"Value ({test_df['unit'].iloc[0]})"),
             tooltip=["report_date", "value"]
         ).properties(

@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 from supabase import create_client
-
+import pandas as pd
 # -----------------------------
 # INIT
 # -----------------------------
@@ -10,41 +10,30 @@ def get_client():
         os.environ["SUPABASE_URL"],
         os.environ["SUPABASE_KEY"]
     )
-
 supabase = get_client()
-
 st.title("🧹 Patient Reconciliation")
-
 # -----------------------------
 # LOAD USERS (caretakers)
 # -----------------------------
 users = supabase.table("users").select("*").execute().data
-
 user_map = {u["name"]: u["user_id"] for u in users}
 user_names = list(user_map.keys())
-
 selected_user = st.selectbox("Select Caretaker", user_names)
-
 # -----------------------------
 # LOAD PATIENTS FOR USER
 # -----------------------------
 if selected_user:
     user_id = user_map[selected_user]
-
     user_patients = supabase.table("user_patients") \
         .select("patient_id") \
         .eq("user_id", user_id) \
         .execute().data
-
     patient_ids = [p["patient_id"] for p in user_patients]
-
     patients = supabase.table("patients") \
         .select("patient_id, name") \
         .in_("patient_id", patient_ids) \
         .execute().data
-
     patient_map = {f"{p['name']} ({p['patient_id'][:6]})": p["patient_id"] for p in patients}
-
     # -----------------------------
     # SELECT PATIENTS TO MERGE
     # -----------------------------
@@ -52,23 +41,16 @@ if selected_user:
         "Select patients to merge",
         list(patient_map.keys())
     )
-
     if len(selected) >= 2:
-
         selected_ids = [patient_map[s] for s in selected]
-
         # Choose target
         target_label = st.selectbox(
             "Select primary patient (target)",
             selected
         )
-
         target_id = patient_map[target_label]
-
         new_name = st.text_input("New merged patient name")
-
         if st.button("🚨 Merge Patients"):
-
             if not new_name:
                 st.error("Please enter a new name")
             else:
@@ -80,23 +62,17 @@ if selected_user:
                         "new_name": new_name
                     }
                 ).execute()
-
                 # 👉 cleanup duplicates
-
                 supabase.rpc("cleanup_user_patients_duplicates").execute()
-
                 st.success("Patients merged and cleaned successfully!")   
                 st.rerun()             
-
                 
-
 st.markdown("---")
 st.subheader("🧪 Test Reconciliation")
 # -----------------------------
 # CONTROLS
 # -----------------------------
 search = st.text_input("🔍 Filter tests")
-
 query = supabase.table("tests") \
     .select("test_id, test_name, canonical_name, report_id, reports(source_file)") \
     .order("test_name") \
@@ -120,11 +96,8 @@ if tests:
         .execute().data
     meas_map = {m["test_id"]: m for m in measurements}
 
-
     st.write("Select tests to standardize:")
-
     selected_test_ids = []
-
     # Header row
     col1, col2, col3, col4, col5 = st.columns([1, 3, 3, 2, 2])
     col1.markdown("**Select**")
@@ -132,50 +105,28 @@ if tests:
     col3.markdown("**Canonical**")
     col4.markdown("**Value**")
     col5.markdown("**Unit**")
-
     st.markdown("---")
-
     # Rows
     for t in tests:
-
         m = meas_map.get(t["test_id"], {})
-
         value = m.get("value_numeric") or m.get("value_text") or ""
-
         unit = m.get("unit") or ""
-
         canonical = t.get("canonical_name") or "—"
-
         # 👇 get S3 link safely
-
         report_url = (t.get("reports") or {}).get("source_file")
-
         col1, col2, col3, col4, col5, col6 = st.columns([1, 3, 3, 2, 2, 2])
-
         checked = col1.checkbox("", key=f"test_{t['test_id']}")
-
         col2.write(t["test_name"])
-
         col3.write(canonical)
-
         col4.write(value)
-
         col5.write(unit)
-
         # 👇 clickable link
-
         if report_url:
-
             col6.markdown(f"[Open]({report_url})")
-
         else:
-
             col6.write("—")
-
         if checked:
-
             selected_test_ids.append(t["test_id"])
-
     # -----------------------------
     # APPLY UPDATE
     # -----------------------------
@@ -196,3 +147,88 @@ if tests:
                 
                 st.success("Test names updated!")
                 st.rerun()
+
+st.markdown("---")
+st.subheader("🛠️ Admin: Update Patient ID")
+# -----------------------------
+# LOAD PATIENTS
+# -----------------------------
+patients_df = pd.DataFrame(patients)
+st.dataframe(
+    patients_df[["patient_id", "name"]],
+    use_container_width=True
+)
+# -----------------------------
+# SELECT PATIENT
+# -----------------------------
+selected_patient = st.selectbox(
+    "Select patient to modify",
+    patients_df["name"].tolist(),
+    key="patient_id_update"
+)
+selected_row = patients_df[
+    patients_df["name"] == selected_patient
+].iloc[0]
+old_patient_id = selected_row["patient_id"]
+st.code(f"Current Patient ID:\n{old_patient_id}")
+# -----------------------------
+# NEW PATIENT ID
+# -----------------------------
+new_patient_id = st.text_input(
+    "Enter NEW patient UUID"
+)
+# -----------------------------
+# UPDATE BUTTON
+# -----------------------------
+if st.button("⚠️ Update Patient ID"):
+
+    try:
+
+        # ---------------------------------
+        # 0. Fetch existing patient row
+        # ---------------------------------
+        patient_row = supabase.table("patients") \
+            .select("*") \
+            .eq("patient_id", old_patient_id) \
+            .single() \
+            .execute()
+
+        patient_data = patient_row.data
+
+        # ---------------------------------
+        # 1. CREATE NEW PATIENT ROW
+        # ---------------------------------
+        supabase.table("patients").insert({
+            "patient_id": new_patient_id,
+            "name": patient_data["name"],
+            "gender": patient_data.get("gender"),
+            "date_of_birth": patient_data.get("date_of_birth")
+        }).execute()
+
+        # ---------------------------------
+        # 2. UPDATE CHILD TABLES
+        # ---------------------------------
+        supabase.table("reports") \
+            .update({"patient_id": new_patient_id}) \
+            .eq("patient_id", old_patient_id) \
+            .execute()
+
+        supabase.table("user_patients") \
+            .update({"patient_id": new_patient_id}) \
+            .eq("patient_id", old_patient_id) \
+            .execute()
+
+        # ---------------------------------
+        # 3. DELETE OLD PATIENT ROW
+        # ---------------------------------
+        supabase.table("patients") \
+            .delete() \
+            .eq("patient_id", old_patient_id) \
+            .execute()
+
+        st.success("✅ Patient ID updated everywhere.")
+
+        st.rerun()
+
+    except Exception as e:
+        st.error(str(e))
